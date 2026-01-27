@@ -23,7 +23,7 @@ A Django REST Framework backend for an automated purchasing system.
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Allcb-coder/purchasing_backend_project.git
    cd purchasing_backend
 2. **Create and activate virtual environment**
 
