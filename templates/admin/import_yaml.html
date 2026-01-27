@@ -1,0 +1,78 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .yaml-import {
+        padding: 20px;
+        background: #f8f8f8;
+        border-radius: 5px;
+        margin: 20px 0;
+    }
+    .form-field {
+        margin: 15px 0;
+    }
+    .form-field label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .form-field input[type="text"],
+    .form-field textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .submit-row {
+        margin-top: 20px;
+    }
+    .help-text {
+        color: #666;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="yaml-import">
+    <h1>{% trans "Import Products from YAML" %}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-field">
+            <label for="id_supplier">Supplier Name:</label>
+            {{ form.supplier }}
+            <div class="help-text">Enter the name of the supplier for these products</div>
+        </div>
+
+        <div class="form-field">
+            <label for="id_yaml_data">YAML Data:</label>
+            {{ form.yaml_data }}
+            <div class="help-text">
+                Paste YAML data in the format:<br>
+                <pre>
+- shop: "Shop Name"
+  categories:
+    - id: 1
+      name: "Category Name"
+  goods:
+    - id: 101
+      category: 1
+      name: "Product Name"
+      price: 99.99
+      quantity: 10
+                </pre>
+            </div>
+        </div>
+
+        <div class="submit-row">
+            <input type="submit" value="Import" class="default">
+            <a href="{% url 'admin:products_product_changelist' %}" class="button">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+- shop: "Electronics Store"
+  categories:
+    - id: 1
+      name: "Laptops"
+    - id: 2
+      name: "Smartphones"
+  goods:
+    - id: 101
+      category: 1
+      name: "Gaming Laptop Pro"
+      price: 1299.99
+      price_rrc: 1499.99
+      quantity: 15
+      parameters:
+        processor: "Intel i7"
+        ram: "16GB"
+        storage: "1TB SSD"
+        gpu: "RTX 3060"
+    - id: 102
+      category: 1
+      name: "Ultrabook Air"
+      price: 899.99
+      price_rrc: 1099.99
+      quantity: 8
+      parameters:
+        processor: "Intel i5"
+        ram: "8GB"
+        storage: "512GB SSD"
+    - id: 201
+      category: 2
+      name: "Smartphone X Pro"
+      price: 799.99
+      price_rrc: 899.99
+      quantity: 25
+      parameters:
+        screen: "6.7 inch"
+        battery: "4500mAh"
+        camera: "48MP"
+    - id: 202
+      category: 2
+      name: "Budget Phone Mini"
+      price: 199.99
+      price_rrc: 249.99
+      quantity: 50
+      parameters:
+        screen: "5.5 inch"
+        battery: "3000mAh"
+        camera: "12MP"
