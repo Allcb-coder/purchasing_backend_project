@@ -1,7 +1,9 @@
-import requests
 import json
 
+import requests
+
 BASE_URL = "http://127.0.0.1:8000"
+
 
 def test_endpoints():
     print("Testing API Endpoints...")
@@ -45,7 +47,7 @@ def test_endpoints():
         "password": "TestPass123!",
         "password2": "TestPass123!",
         "first_name": "Test",
-        "last_name": "API"
+        "last_name": "API",
     }
 
     response = requests.post(f"{BASE_URL}/api/auth/register/", json=user_data)
@@ -59,17 +61,14 @@ def test_endpoints():
 
     # Test 5: Login
     print("\n5. User login test...")
-    login_data = {
-        "username": "testuser_api",
-        "password": "TestPass123!"
-    }
+    login_data = {"username": "testuser_api", "password": "TestPass123!"}
 
     response = requests.post(f"{BASE_URL}/api/auth/login/", json=login_data)
     print(f"   Login: {response.status_code}")
 
     if response.status_code == 200:
         login_info = response.json()
-        token = login_info.get('token')
+        token = login_info.get("token")
         print(f"   ✓ Login successful")
         print(f"   Token received: {token[:20]}...")
 
@@ -87,14 +86,12 @@ def test_endpoints():
         # First get a product ID
         products_response = requests.get(f"{BASE_URL}/api/products/products/")
         if products_response.status_code == 200:
-            products = products_response.json().get('results', products_response.json())
+            products = products_response.json().get("results", products_response.json())
             if products and len(products) > 0:
-                product_id = products[0]['id']
+                product_id = products[0]["id"]
                 cart_data = {"product_id": product_id, "quantity": 2}
                 response = requests.post(
-                    f"{BASE_URL}/api/cart/add_item/",
-                    headers=headers,
-                    json=cart_data
+                    f"{BASE_URL}/api/cart/add_item/", headers=headers, json=cart_data
                 )
                 print(f"   Add to cart: {response.status_code}")
                 if response.status_code == 200:
@@ -120,6 +117,7 @@ def test_endpoints():
 
     print("\n" + "=" * 50)
     print("API Testing Complete!")
+
 
 if __name__ == "__main__":
     test_endpoints()

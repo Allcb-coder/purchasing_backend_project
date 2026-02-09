@@ -1,9 +1,11 @@
-import requests
 import json
-import time
 import sys
+import time
+
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
+
 
 class E2ETest:
     def __init__(self):
@@ -19,7 +21,7 @@ class E2ETest:
     def print_step(self, step_num, description):
         print(f"\n{'='*60}")
         print(f"STEP {step_num}: {description}")
-        print('='*60)
+        print("=" * 60)
 
     def register_user(self):
         self.print_step(1, "REGISTERING NEW USER")
@@ -33,7 +35,7 @@ class E2ETest:
             "password": self.password,
             "password2": self.password,
             "first_name": "John",
-            "last_name": "Doe"
+            "last_name": "Doe",
         }
 
         response = requests.post(f"{BASE_URL}/api/auth/register/", json=user_data)
@@ -55,17 +57,14 @@ class E2ETest:
             print("✗ No username available")
             return False
 
-        login_data = {
-            "username": self.username,
-            "password": self.password
-        }
+        login_data = {"username": self.username, "password": self.password}
 
         response = requests.post(f"{BASE_URL}/api/auth/login/", json=login_data)
 
         if response.status_code == 200:
             data = response.json()
-            self.token = data.get('token')
-            self.user_id = data.get('user_id')
+            self.token = data.get("token")
+            self.user_id = data.get("user_id")
             self.headers = {"Authorization": f"Token {self.token}"}
 
             print("✓ Login successful")
@@ -85,21 +84,25 @@ class E2ETest:
 
         if response.status_code == 200:
             products = response.json()
-            if isinstance(products, dict) and 'results' in products:
-                products = products['results']
-            elif isinstance(products, dict) and 'count' in products:
-                products = products.get('results', [])
+            if isinstance(products, dict) and "results" in products:
+                products = products["results"]
+            elif isinstance(products, dict) and "count" in products:
+                products = products.get("results", [])
 
-            print(f"✓ Found {len(products) if isinstance(products, list) else 'unknown'} products")
+            print(
+                f"✓ Found {len(products) if isinstance(products, list) else 'unknown'} products"
+            )
 
             # Show first 3 products
             if products and len(products) > 0:
                 print("\nSample Products:")
                 for i, product in enumerate(products[:3]):
-                    print(f"  {i+1}. {product.get('name', 'N/A')} - ${product.get('price', 'N/A')}")
+                    print(
+                        f"  {i+1}. {product.get('name', 'N/A')} - ${product.get('price', 'N/A')}"
+                    )
 
                 # Save first product ID for cart test
-                self.product_id = products[0].get('id')
+                self.product_id = products[0].get("id")
                 print(f"\n  Selected product ID for cart: {self.product_id}")
                 return True
             else:
@@ -118,21 +121,16 @@ class E2ETest:
             return False
 
         # Add item to cart
-        cart_data = {
-            "product_id": self.product_id,
-            "quantity": 2
-        }
+        cart_data = {"product_id": self.product_id, "quantity": 2}
 
         response = requests.post(
-            f"{BASE_URL}/api/cart/add_item/",
-            headers=self.headers,
-            json=cart_data
+            f"{BASE_URL}/api/cart/add_item/", headers=self.headers, json=cart_data
         )
 
         if response.status_code == 200:
             print("✓ Item added to cart")
             cart_item = response.json()
-            product_name = cart_item.get('product', {}).get('name', 'Unknown')
+            product_name = cart_item.get("product", {}).get("name", "Unknown")
             print(f"  Product: {product_name}")
             print(f"  Quantity: {cart_item.get('quantity', 'N/A')}")
             print(f"  Total Price: ${cart_item.get('total_price', 'N/A')}")
@@ -163,12 +161,14 @@ class E2ETest:
             print(f"  Total: ${cart.get('total', 0)}")
 
             # Show cart items
-            items = cart.get('items', [])
+            items = cart.get("items", [])
             if items:
                 print("\n  Cart Items:")
                 for i, item in enumerate(items):
-                    product_name = item.get('product', {}).get('name', 'Unknown')
-                    print(f"    {i+1}. {product_name} - {item.get('quantity', 0)} x ${item.get('unit_price', 0)}")
+                    product_name = item.get("product", {}).get("name", "Unknown")
+                    print(
+                        f"    {i+1}. {product_name} - {item.get('quantity', 0)} x ${item.get('unit_price', 0)}"
+                    )
 
             return True
         else:
@@ -189,31 +189,33 @@ class E2ETest:
             "postal_code": "10001",
             "country": "USA",
             "notes": "Please deliver after 5 PM",
-            "save_as_default_address": True
+            "save_as_default_address": True,
         }
 
         response = requests.post(
-            f"{BASE_URL}/api/orders/",
-            headers=self.headers,
-            json=order_data
+            f"{BASE_URL}/api/orders/", headers=self.headers, json=order_data
         )
 
         if response.status_code == 201:
             order = response.json()
-            self.order_id = order.get('id')
+            self.order_id = order.get("id")
 
             print("✓ Order created successfully!")
             print(f"  Order ID: {order.get('id', 'N/A')}")
             print(f"  Status: {order.get('status_display', 'N/A')}")
             print(f"  Total Amount: ${order.get('total', 'N/A')}")
-            print(f"  Shipping Address: {order.get('address', 'N/A')}, {order.get('city', 'N/A')}")
+            print(
+                f"  Shipping Address: {order.get('address', 'N/A')}, {order.get('city', 'N/A')}"
+            )
 
             # Show order items
-            items = order.get('items', [])
+            items = order.get("items", [])
             if items:
                 print("\n  Order Items:")
                 for i, item in enumerate(items):
-                    print(f"    {i+1}. {item.get('product_name', 'Unknown')} - {item.get('quantity', 0)} x ${item.get('unit_price', 0)}")
+                    print(
+                        f"    {i+1}. {item.get('product_name', 'Unknown')} - {item.get('quantity', 0)} x ${item.get('unit_price', 0)}"
+                    )
 
             return True
         else:
@@ -228,17 +230,21 @@ class E2ETest:
 
         if response.status_code == 200:
             orders = response.json()
-            if isinstance(orders, dict) and 'results' in orders:
-                orders = orders['results']
-            elif isinstance(orders, dict) and 'count' in orders:
-                orders = orders.get('results', [])
+            if isinstance(orders, dict) and "results" in orders:
+                orders = orders["results"]
+            elif isinstance(orders, dict) and "count" in orders:
+                orders = orders.get("results", [])
 
-            print(f"✓ Found {len(orders) if isinstance(orders, list) else 'unknown'} orders")
+            print(
+                f"✓ Found {len(orders) if isinstance(orders, list) else 'unknown'} orders"
+            )
 
             if orders and len(orders) > 0:
                 print("\n  Recent Orders:")
                 for i, order in enumerate(orders[:3]):
-                    print(f"    {i+1}. Order #{order.get('id', 'N/A')} - {order.get('status_display', 'N/A')} - ${order.get('total', 'N/A')}")
+                    print(
+                        f"    {i+1}. Order #{order.get('id', 'N/A')} - {order.get('status_display', 'N/A')} - ${order.get('total', 'N/A')}"
+                    )
 
             return True
         else:
@@ -247,9 +253,9 @@ class E2ETest:
             return False
 
     def run_full_test(self):
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("STARTING COMPLETE E2E TEST")
-        print("="*60)
+        print("=" * 60)
 
         steps = [
             (self.register_user, "User Registration"),
@@ -276,9 +282,9 @@ class E2ETest:
                 print(f"✗ Error in {description}: {str(e)}")
                 failed_count += 1
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TEST SUMMARY")
-        print("="*60)
+        print("=" * 60)
         print(f"✓ Successful steps: {success_count}")
         print(f"✗ Failed steps: {failed_count}")
         print(f"Total steps attempted: {success_count + failed_count}")
@@ -293,9 +299,9 @@ class E2ETest:
 
 def quick_api_test():
     """Quick test of basic API endpoints"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("QUICK API TEST")
-    print("="*60)
+    print("=" * 60)
 
     # Test public endpoints
     endpoints = [
@@ -330,10 +336,10 @@ if __name__ == "__main__":
             quick_api_test()
 
             # Ask if user wants to run full E2E test
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             run_full = input("Run full E2E test? (y/n): ").strip().lower()
 
-            if run_full == 'y':
+            if run_full == "y":
                 # Run full test
                 test = E2ETest()
                 test.run_full_test()

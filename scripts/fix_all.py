@@ -1,7 +1,7 @@
 import os
 
 # Create products/serializers.py
-products_serializers = '''from rest_framework import serializers
+products_serializers = """from rest_framework import serializers
 from .models import Category, Product
 
 
@@ -39,10 +39,10 @@ class ProductSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("Quantity cannot be negative")
         return value
-'''
+"""
 
 # Create suppliers/serializers.py
-suppliers_serializers = '''from rest_framework import serializers
+suppliers_serializers = """from rest_framework import serializers
 from .models import Supplier, SupplierProduct
 
 
@@ -72,10 +72,10 @@ class SupplierProductSerializer(serializers.ModelSerializer):
             'supplier_price', 'supplier_quantity', 'is_available'
         ]
         read_only_fields = ['id', 'product_name']
-'''
+"""
 
 # Create cart/serializers.py
-cart_serializers = '''from rest_framework import serializers
+cart_serializers = """from rest_framework import serializers
 from .models import Cart, CartItem
 
 
@@ -115,7 +115,7 @@ class CartSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at', 
                           'total_items', 'subtotal', 'total']
-'''
+"""
 
 # Create cart/views.py
 cart_views = '''from rest_framework import permissions, status
@@ -239,35 +239,35 @@ class CartItemView(APIView):
 '''
 
 # Create cart/urls.py
-cart_urls = '''from django.urls import path
+cart_urls = """from django.urls import path
 from . import views
 
 urlpatterns = [
     path('', views.CartView.as_view(), name='cart'),
     path('items/<int:item_id>/', views.CartItemView.as_view(), name='cart-item'),
 ]
-'''
+"""
 
 # Write files
 print("Creating fixed files...")
 
-with open('products/serializers.py', 'w') as f:
+with open("products/serializers.py", "w") as f:
     f.write(products_serializers)
 print("✓ Created products/serializers.py")
 
-with open('suppliers/serializers.py', 'w') as f:
+with open("suppliers/serializers.py", "w") as f:
     f.write(suppliers_serializers)
 print("✓ Created suppliers/serializers.py")
 
-with open('cart/serializers.py', 'w') as f:
+with open("cart/serializers.py", "w") as f:
     f.write(cart_serializers)
 print("✓ Created cart/serializers.py")
 
-with open('cart/views.py', 'w') as f:
+with open("cart/views.py", "w") as f:
     f.write(cart_views)
 print("✓ Created cart/views.py")
 
-with open('cart/urls.py', 'w') as f:
+with open("cart/urls.py", "w") as f:
     f.write(cart_urls)
 print("✓ Created cart/urls.py")
 

@@ -1,6 +1,8 @@
-import yaml
 from decimal import Decimal
+
+import yaml
 from django.db import transaction
+
 from products.models import Category, Product
 from suppliers.models import Supplier, SupplierProduct
 
@@ -11,15 +13,15 @@ class YAMLImporter:
     def __init__(self, verbose=False):
         self.verbose = verbose
         self.stats = {
-            'categories_created': 0,
-            'products_created': 0,
-            'products_updated': 0,
-            'supplier_products_created': 0,
-            'supplier_products_updated': 0,
-            'errors': 0,
+            "categories_created": 0,
+            "products_created": 0,
+            "products_updated": 0,
+            "supplier_products_created": 0,
+            "supplier_products_updated": 0,
+            "errors": 0,
         }
 
-    def log(self, message, style='info'):
+    def log(self, message, style="info"):
         """Log message based on verbosity"""
         if self.verbose:
             print(f"[{style.upper()}] {message}")
@@ -27,7 +29,7 @@ class YAMLImporter:
     @transaction.atomic
     def import_from_file(self, file_path, supplier_name):
         """Import data from YAML file"""
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
 
         return self.import_data(data, supplier_name)
@@ -52,16 +54,16 @@ class YAMLImporter:
         supplier, created = Supplier.objects.get_or_create(
             name=supplier_name,
             defaults={
-                'email': f'{supplier_name.lower().replace(" ", "_")}@example.com',
-                'address': 'Address not specified',
-                'phone': 'Not specified',
-            }
+                "email": f'{supplier_name.lower().replace(" ", "_")}@example.com',
+                "address": "Address not specified",
+                "phone": "Not specified",
+            },
         )
 
         if created:
-            self.log(f'Created new supplier: {supplier_name}', 'success')
+            self.log(f"Created new supplier: {supplier_name}", "success")
         else:
-            self.log(f'Using existing supplier: {supplier_name}', 'warning')
+            self.log(f"Using existing supplier: {supplier_name}", "warning")
 
         return supplier, created
 
@@ -78,17 +80,17 @@ class YAMLImporter:
             return [data]
         else:
             # Unexpected structure
-            self.log(f'Unexpected data type: {type(data)}', 'error')
+            self.log(f"Unexpected data type: {type(data)}", "error")
             return []
 
     def process_shop(self, shop_data, supplier):
         """Process a single shop's data"""
         if not isinstance(shop_data, dict):
-            self.log(f'Skipping non-dict shop data: {type(shop_data)}', 'warning')
+            self.log(f"Skipping non-dict shop data: {type(shop_data)}", "warning")
             return
 
-        shop_name = shop_data.get('shop', supplier.name)
-        self.log(f'Processing shop: {shop_name}')
+        shop_name = shop_data.get("shop", supplier.name)
+        self.log(f"Processing shop: {shop_name}")
 
         # Extract categories
         categories_map = self.extract_categories(shop_data)
@@ -108,12 +110,12 @@ class YAMLImporter:
         categories = None
 
         # Case 1: Direct categories list
-        if 'categories' in shop_data:
-            categories = shop_data['categories']
-        elif 'Categories' in shop_data:
-            categories = shop_data['Categories']
-        elif 'category' in shop_data:
-            categories = shop_data['category']
+        if "categories" in shop_data:
+            categories = shop_data["categories"]
+        elif "Categories" in shop_data:
+            categories = shop_data["Categories"]
+        elif "category" in shop_data:
+            categories = shop_data["category"]
 
         if categories:
             if isinstance(categories, list):
@@ -130,8 +132,8 @@ class YAMLImporter:
     def process_category_item(self, cat_item, categories_map):
         """Process a single category item"""
         if isinstance(cat_item, dict):
-            cat_id = cat_item.get('id')
-            cat_name = cat_item.get('name')
+            cat_id = cat_item.get("id")
+            cat_name = cat_item.get("name")
             if cat_name:
                 category = self.create_or_get_category(cat_name)
                 if cat_id:
@@ -147,12 +149,10 @@ class YAMLImporter:
 
     def create_or_get_category(self, name):
         """Create or get category by name"""
-        category, created = Category.objects.get_or_create(
-            name=name.strip()
-        )
+        category, created = Category.objects.get_or_create(name=name.strip())
         if created:
-            self.stats['categories_created'] += 1
-            self.log(f'Created category: {name}', 'success')
+            self.stats["categories_created"] += 1
+            self.log(f"Created category: {name}", "success")
         return category
 
     def extract_products(self, shop_data):
@@ -160,7 +160,7 @@ class YAMLImporter:
         products = []
 
         # Try different product keys
-        product_keys = ['goods', 'products', 'Goods', 'Products', 'items', 'Items']
+        product_keys = ["goods", "products", "Goods", "Products", "items", "Items"]
 
         for key in product_keys:
             if key in shop_data:
@@ -177,13 +177,15 @@ class YAMLImporter:
         """Process a single product"""
         try:
             if not isinstance(product_data, dict):
-                self.log(f'Skipping non-dict product: {type(product_data)}', 'warning')
+                self.log(f"Skipping non-dict product: {type(product_data)}", "warning")
                 return
 
             # Extract basic info
-            name = self.extract_value(product_data, ['name', 'Name', 'product', 'Product'])
+            name = self.extract_value(
+                product_data, ["name", "Name", "product", "Product"]
+            )
             if not name:
-                self.log('Skipping product without name', 'warning')
+                self.log("Skipping product without name", "warning")
                 return
 
             # Extract category
@@ -197,14 +199,16 @@ class YAMLImporter:
             description = self.extract_description(product_data)
 
             # Create or update product
-            product = self.create_or_update_product(name, category, price, quantity, description)
+            product = self.create_or_update_product(
+                name, category, price, quantity, description
+            )
 
             # Create supplier product link
             self.create_supplier_product(product, supplier, price, quantity)
 
         except Exception as e:
-            self.stats['errors'] += 1
-            self.log(f"Error processing product: {str(e)}", 'error')
+            self.stats["errors"] += 1
+            self.log(f"Error processing product: {str(e)}", "error")
 
     def extract_value(self, data, keys):
         """Extract value using multiple possible keys"""
@@ -220,23 +224,33 @@ class YAMLImporter:
     def extract_category(self, product_data, categories_map):
         """Extract category from product data"""
         # Try to get category by ID
-        for key in ['category', 'Category', 'category_id', 'categoryId']:
+        for key in ["category", "Category", "category_id", "categoryId"]:
             if key in product_data:
                 cat_ref = product_data[key]
                 if cat_ref in categories_map:
                     return categories_map[cat_ref]
 
         # Try to get category by name
-        cat_name = self.extract_value(product_data, ['category_name', 'categoryName', 'category_name'])
+        cat_name = self.extract_value(
+            product_data, ["category_name", "categoryName", "category_name"]
+        )
         if cat_name and cat_name in categories_map:
             return categories_map[cat_name]
 
         # Default category
-        return Category.objects.get_or_create(name='Uncategorized')[0]
+        return Category.objects.get_or_create(name="Uncategorized")[0]
 
     def extract_price(self, product_data):
         """Extract price from product data"""
-        price_keys = ['price', 'Price', 'cost', 'Cost', 'unit_price', 'unitPrice', 'retail_price']
+        price_keys = [
+            "price",
+            "Price",
+            "cost",
+            "Cost",
+            "unit_price",
+            "unitPrice",
+            "retail_price",
+        ]
 
         for key in price_keys:
             if key in product_data:
@@ -247,11 +261,20 @@ class YAMLImporter:
                 except:
                     continue
 
-        return Decimal('0.00')
+        return Decimal("0.00")
 
     def extract_quantity(self, product_data):
         """Extract quantity from product data"""
-        qty_keys = ['quantity', 'Quantity', 'stock', 'Stock', 'qty', 'Qty', 'count', 'Count']
+        qty_keys = [
+            "quantity",
+            "Quantity",
+            "stock",
+            "Stock",
+            "qty",
+            "Qty",
+            "count",
+            "Count",
+        ]
 
         for key in qty_keys:
             if key in product_data:
@@ -267,35 +290,37 @@ class YAMLImporter:
     def extract_description(self, product_data):
         """Extract description from product data"""
         # Direct description
-        desc = self.extract_value(product_data, ['description', 'Description', 'desc', 'Desc'])
+        desc = self.extract_value(
+            product_data, ["description", "Description", "desc", "Desc"]
+        )
         if desc:
             return desc
 
         # Build from parameters
         params = None
-        for key in ['parameters', 'Parameters', 'params', 'Params', 'specs']:
+        for key in ["parameters", "Parameters", "params", "Params", "specs"]:
             if key in product_data:
                 params = product_data[key]
                 break
 
         if params:
             if isinstance(params, dict):
-                return ', '.join([f"{k}: {v}" for k, v in params.items()])
+                return ", ".join([f"{k}: {v}" for k, v in params.items()])
             elif isinstance(params, str):
                 return params
 
-        return ''
+        return ""
 
     def create_or_update_product(self, name, category, price, quantity, description):
         """Create or update a product"""
         product, created = Product.objects.get_or_create(
             name=name,
             defaults={
-                'category': category,
-                'price': price,
-                'quantity': quantity,
-                'description': description,
-            }
+                "category": category,
+                "price": price,
+                "quantity": quantity,
+                "description": description,
+            },
         )
 
         if not created:
@@ -306,11 +331,11 @@ class YAMLImporter:
             if description:
                 product.description = description
             product.save()
-            self.stats['products_updated'] += 1
-            self.log(f'Updated product: {name}', 'info')
+            self.stats["products_updated"] += 1
+            self.log(f"Updated product: {name}", "info")
         else:
-            self.stats['products_created'] += 1
-            self.log(f'Created product: {name}', 'success')
+            self.stats["products_created"] += 1
+            self.log(f"Created product: {name}", "success")
 
         return product
 
@@ -320,15 +345,15 @@ class YAMLImporter:
             supplier=supplier,
             product=product,
             defaults={
-                'supplier_price': price,
-                'supplier_quantity': quantity,
-                'is_available': quantity > 0,
-            }
+                "supplier_price": price,
+                "supplier_quantity": quantity,
+                "is_available": quantity > 0,
+            },
         )
 
         if created:
-            self.stats['supplier_products_created'] += 1
-            self.log(f'Created supplier product link: {product.name}', 'info')
+            self.stats["supplier_products_created"] += 1
+            self.log(f"Created supplier product link: {product.name}", "info")
         else:
-            self.stats['supplier_products_updated'] += 1
-            self.log(f'Updated supplier product link: {product.name}', 'info')
+            self.stats["supplier_products_updated"] += 1
+            self.log(f"Updated supplier product link: {product.name}", "info")

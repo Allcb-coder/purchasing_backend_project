@@ -1,10 +1,11 @@
-import yaml
 import sys
 
-filename = 'shop1.yaml'
+import yaml
+
+filename = "shop1.yaml"
 
 print(f"Reading {filename}...")
-with open(filename, 'r', encoding='utf-8') as f:
+with open(filename, "r", encoding="utf-8") as f:
     data = yaml.safe_load(f)
 
 print(f"\nData type: {type(data)}")
@@ -17,7 +18,9 @@ if isinstance(data, list):
         if isinstance(item, dict):
             for key, value in item.items():
                 print(f"  {key}: {type(value)}")
-                if key in ['goods', 'products', 'categories'] and isinstance(value, list):
+                if key in ["goods", "products", "categories"] and isinstance(
+                    value, list
+                ):
                     print(f"    First 2 {key}:")
                     for subitem in value[:2]:
                         print(f"      - {subitem}")

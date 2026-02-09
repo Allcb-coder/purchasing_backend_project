@@ -1,37 +1,47 @@
 from rest_framework import serializers
-from .models import Supplier, SupplierProduct
-from products.serializers import ProductSerializer
+
 from products.models import Product
+from products.serializers import ProductSerializer
 
-
-class SupplierSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Supplier
-        fields = [
-            'id', 'name', 'email', 'phone', 'address',
-            'is_active', 'accepts_orders', 'created_at'
-        ]
-        read_only_fields = ['id', 'created_at']
+from .models import Supplier, SupplierProduct
 
 
 class SupplierProductSerializer(serializers.ModelSerializer):
-    supplier = SupplierSerializer(read_only=True)
-    supplier_id = serializers.PrimaryKeyRelatedField(
-        queryset=Supplier.objects.all(),
-        source='supplier',
-        write_only=True
-    )
+    # Nested product info for read operations
     product = ProductSerializer(read_only=True)
+    # For write operations (POST/PUT)
     product_id = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all(),
-        source='product',
-        write_only=True
+        queryset=Product.objects.all(), source="product", write_only=True
     )
-    
+
     class Meta:
         model = SupplierProduct
         fields = [
-            'id', 'supplier', 'supplier_id', 'product', 'product_id',
-            'supplier_price', 'supplier_quantity', 'is_available'
+            "id",
+            "product",
+            "product_id",
+            "supplier_price",
+            "supplier_quantity",
+            "is_available",
         ]
-        read_only_fields = ['id']
+        read_only_fields = ["id"]
+
+
+class SupplierSerializer(serializers.ModelSerializer):
+    # Include all products offered by this supplier
+    supplier_products = SupplierProductSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Supplier
+        fields = [
+            "id",
+            "name",
+            "email",
+            "phone",
+            "address",
+            "is_active",
+            "accepts_orders",
+            "created_at",
+            "supplier_products",  # nested products
+        ]
+        read_only_fields = ["id", "created_at", "supplier_products"]

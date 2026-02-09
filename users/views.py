@@ -1,14 +1,13 @@
-from rest_framework import generics, permissions, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
-from .models import UserProfile, Address
-from .serializers import (
-    UserSerializer, UserProfileSerializer, AddressSerializer
-)
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from .models import Address, UserProfile
+from .serializers import AddressSerializer, UserProfileSerializer, UserSerializer
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -24,19 +23,23 @@ class UserRegistrationView(generics.CreateAPIView):
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        user = serializer.validated_data["user"]
         token, created = Token.objects.get_or_create(user=user)
 
-        return Response({
-            'token': token.key,
-            'user_id': user.pk,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name
-        })
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.pk,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        )
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
@@ -64,4 +67,6 @@ class LogoutView(generics.GenericAPIView):
     def post(self, request):
         Token.objects.filter(user=request.user).delete()
         logout(request)
-        return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Successfully logged out"}, status=status.HTTP_200_OK
+        )

@@ -1,24 +1,26 @@
-from django.db import models
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from decimal import Decimal
+from django.db import models
 
 
 class Cart(models.Model):
     """Shopping cart for a user"""
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='cart',
-        verbose_name='User'
+        related_name="cart",
+        verbose_name="User",
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
-    is_active = models.BooleanField(default=True, verbose_name='Is Active')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
+    is_active = models.BooleanField(default=True, verbose_name="Is Active")
 
     class Meta:
-        verbose_name = 'Cart'
-        verbose_name_plural = 'Carts'
+        verbose_name = "Cart"
+        verbose_name_plural = "Carts"
 
     def __str__(self):
         return f"Cart of {self.user.email}"
@@ -48,48 +50,40 @@ class Cart(models.Model):
         """Merge session cart items with user cart (for when user logs in)"""
         for session_item in session_cart_items:
             cart_item, created = self.items.get_or_create(
-                product_id=session_item['product_id'],
-                defaults={
-                    'quantity': session_item['quantity']
-                }
+                product_id=session_item["product_id"],
+                defaults={"quantity": session_item["quantity"]},
             )
             if not created:
-                cart_item.quantity += session_item['quantity']
+                cart_item.quantity += session_item["quantity"]
                 cart_item.save()
 
 
 class CartItem(models.Model):
     """Individual items in the shopping cart"""
+
     cart = models.ForeignKey(
-        Cart,
-        on_delete=models.CASCADE,
-        related_name='items',
-        verbose_name='Cart'
+        Cart, on_delete=models.CASCADE, related_name="items", verbose_name="Cart"
     )
     product = models.ForeignKey(
-        'products.Product',
-        on_delete=models.CASCADE,
-        verbose_name='Product'
+        "products.Product", on_delete=models.CASCADE, verbose_name="Product"
     )
     supplier_product = models.ForeignKey(
-        'suppliers.SupplierProduct',
+        "suppliers.SupplierProduct",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name='Supplier Product'
+        verbose_name="Supplier Product",
     )
     quantity = models.PositiveIntegerField(
-        default=1,
-        validators=[MinValueValidator(1)],
-        verbose_name='Quantity'
+        default=1, validators=[MinValueValidator(1)], verbose_name="Quantity"
     )
-    added_at = models.DateTimeField(auto_now_add=True, verbose_name='Added At')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+    added_at = models.DateTimeField(auto_now_add=True, verbose_name="Added At")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
     class Meta:
-        verbose_name = 'Cart Item'
-        verbose_name_plural = 'Cart Items'
-        unique_together = ['cart', 'product', 'supplier_product']
+        verbose_name = "Cart Item"
+        verbose_name_plural = "Cart Items"
+        unique_together = ["cart", "product", "supplier_product"]
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
@@ -110,7 +104,10 @@ class CartItem(models.Model):
     def is_available(self):
         """Check if item is available in stock"""
         if self.supplier_product:
-            return self.supplier_product.is_available and self.supplier_product.supplier_quantity >= self.quantity
+            return (
+                self.supplier_product.is_available
+                and self.supplier_product.supplier_quantity >= self.quantity
+            )
         return self.product.quantity >= self.quantity
 
     def save(self, *args, **kwargs):
@@ -118,8 +115,7 @@ class CartItem(models.Model):
         if self.product and not self.supplier_product:
             # Try to find an available supplier product
             supplier_product = self.product.supplier_products.filter(
-                is_available=True,
-                supplier__accepts_orders=True
+                is_available=True, supplier__accepts_orders=True
             ).first()
             if supplier_product:
                 self.supplier_product = supplier_product
